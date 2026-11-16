@@ -2,6 +2,8 @@
 name = "asr-bench"
 version = "0.1.0"
 description = "Speech-to-text quality benchmark for contact-center conditions"
+readme = "README.md"
+license = "MIT"
 requires-python = ">=3.12"
 dependencies = [
     "faster-whisper>=1.2.1",

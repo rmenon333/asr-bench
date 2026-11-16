@@ -137,3 +137,47 @@ Every number in `report.md` comes from code reading the CSV. If we re-run with m
 
 **Interview question**
 "Medium beats small by 3 WER points on clean audio. Is that real?" Suggested answer: it depends on the uncertainty, not the size of the gap. We ran a paired bootstrap on the same 50 sentences, and the difference's 95% interval is 1.1–5.5 points, entirely above zero. So with this data it's a clear difference, but the true gap could be as small as 1 point or as large as 5.5.
+
+## Step 7 — README, recommendations skeleton, wrap-up (2026-11-16)
+
+**New files**
+- `README.md` — the project as a mini-PRD: problem, method, results (copied from `results/report.md`), limitations, what to do next in production, quick start, how to extend, and a repository map.
+- `RECOMMENDATIONS.md` — a skeleton for the owner. The evidence for each use case is filled in; the recommended model and one-sentence trade-off are left blank.
+- `LICENSE` — MIT, for the code only. The datasets keep their own CC BY 4.0 terms.
+
+**Clean-clone check:** cloning into a temporary folder and running `make install`, `make test`, `make smoke` and `make report` all worked. The rebuilt report and charts were byte-for-byte identical to the committed ones, so the report is fully reproducible. The dataset download step was not repeated; it was verified in step 2.
+
+### The whole codebase on one page
+
+```
+config.yaml ──► cli.py  (the commands: download, sample, listen, run, report)
+                 │
+   download ──► data.py         fetch LibriSpeech + FLEURS into data/; pick a seeded sample
+   run      ──► run.py          for each model × dataset × sentence × condition:
+                 ├─ conditions.py   clean / phone line / pink noise at an exact SNR
+                 ├─ transcribe.py   faster-whisper on CPU, timed
+                 └─ metrics.py      normalise text, count word errors, RTF
+                 └─► results/results.csv   (one row per clip; resumable)
+   report   ──► report.py       bootstrap intervals, hypothesis rules, cost, 3 charts
+                 └─► results/report.md + results/charts/*.png
+```
+
+### Acceptance criteria (SPEC §9)
+| Criterion | Status |
+|---|---|
+| Fresh clone to report in documented steps, macOS Apple Silicon | Met (clean-clone check above; README §6) |
+| Unit tests: WER on known pairs, normaliser, noise SNR, telephony band, resume | Met (55 tests pass) |
+| 5-utterance smoke run under 5 minutes | Met (~1.5 min for 150 clips) |
+| Every chart states sample size and conditions | Met (in each chart's title) |
+| Limitations name read speech, synthetic noise, single speaker, no diarisation, CPU timings | Met (README §4 and the report) |
+| Deliverable: `RECOMMENDATIONS.md` written by the owner | **Open:** skeleton ready for the owner to fill in |
+
+**Concept: reproducibility**
+Anyone with this repo can get the *same* report, and we checked that. Three things make it work: a lockfile (exact package versions), fixed seeds (the same sentences, the same noise, the same bootstrap re-draws), and a report generated from data rather than written by hand. Reproducibility is what turns a one-off experiment into evidence other people can check and build on.
+
+### Five interview questions worth practising
+1. "Why not just pick the model with the best leaderboard score?" (Clean audio hides how much worse models get on phone + noise: tiny went from 17.7% to 59.9% WER, medium from 4.3% to 17.3%.)
+2. "How do you know a difference between two models is real?" (A paired bootstrap on the same sentences; it's clear only if the 95% interval excludes zero.)
+3. "What would change your recommendation?" (Real call audio, GPU timings, streaming delay, the hosted API's accuracy, a larger sample.)
+4. "One hypothesis didn't hold. What did you do?" (Spanish did not degrade more than English, and sometimes less. We reported it as found, and noted that absolute points favour languages that start with low WER.)
+5. "Why is self-hosting cheaper per minute here, and what's missing from that number?" (The compute floor is $0.61–$2.10 vs $6 per 1,000 minutes, but it excludes idle capacity, engineering, redundancy and monitoring.)
