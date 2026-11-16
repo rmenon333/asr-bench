@@ -170,7 +170,7 @@ config.yaml ──► cli.py  (the commands: download, sample, listen, run, repo
 | 5-utterance smoke run under 5 minutes | Met (~1.5 min for 150 clips) |
 | Every chart states sample size and conditions | Met (in each chart's title) |
 | Limitations name read speech, synthetic noise, single speaker, no diarisation, CPU timings | Met (README §4 and the report) |
-| Deliverable: `RECOMMENDATIONS.md` written by the owner | **Open:** skeleton ready for the owner to fill in |
+| Deliverable: `RECOMMENDATIONS.md` written by the owner | **Done:** small for live captions, medium for post-call and analytics |
 
 **Concept: reproducibility**
 Anyone with this repo can get the *same* report, and we checked that. Three things make it work: a lockfile (exact package versions), fixed seeds (the same sentences, the same noise, the same bootstrap re-draws), and a report generated from data rather than written by hand. Reproducibility is what turns a one-off experiment into evidence other people can check and build on.
@@ -181,3 +181,11 @@ Anyone with this repo can get the *same* report, and we checked that. Three thin
 3. "What would change your recommendation?" (Real call audio, GPU timings, streaming delay, the hosted API's accuracy, a larger sample.)
 4. "One hypothesis didn't hold. What did you do?" (Spanish did not degrade more than English, and sometimes less. We reported it as found, and noted that absolute points favour languages that start with low WER.)
 5. "Why is self-hosting cheaper per minute here, and what's missing from that number?" (The compute floor is $0.61–$2.10 vs $6 per 1,000 minutes, but it excludes idle capacity, engineering, redundancy and monitoring.)
+
+## Step 8: Recommendations filled in (2026-11-16)
+
+**What changed:** `RECOMMENDATIONS.md` now names a model and a one-sentence trade-off for each use case. Live captions get `small`. Post-call transcripts get `medium`. Analytics and summaries get `medium`, by reusing the post-call transcripts. Each use case also has a short "why not the others".
+
+**Concept: choose by what fails first.** Each use case has a hard limit, and the right model is the most accurate one that stays within it. For live captions the limit is keeping up with speech, which rules out `medium` on a CPU. For post-call the limit is cost, and `medium`'s $2.10 per 1,000 minutes is far below it, so accuracy decides. For analytics the decider is the weakest language you support: German.
+
+**Interview question:** "Why recommend different models for live and post-call, and not one model for simplicity?" (They fail on different limits. Live captions are limited by latency, post-call by accuracy. One model would be too slow for one use case or too inaccurate for the other. The cost of running two is small, since both are the same model family and the same code.)

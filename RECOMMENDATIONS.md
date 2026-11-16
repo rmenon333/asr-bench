@@ -1,14 +1,14 @@
 # RECOMMENDATIONS.md: which model for which use case
 
-_Owner-written. The evidence below is copied from [`results/report.md`](results/report.md) (n = 50 sentences per model × condition; Apple M4 CPU; prices from `config.yaml`). Fill in the **blank** lines. Keep each trade-off to one sentence, and cite the numbers you rely on._
+_Owner-written. The evidence below is copied from [`results/report.md`](results/report.md) (n = 50 sentences per model × condition; Apple M4 CPU; prices from `config.yaml`). These are recommendations for a CPU deployment, based on a small sample of read speech. See the caveats at the end._
 
 ## Summary table
 
 | Use case | Recommended model | Trade-off in one sentence |
 |---|---|---|
-| Live captions | _____ | _____ |
-| Post-call transcripts | _____ | _____ |
-| Analytics / summaries | _____ | _____ |
+| Live captions | **small** | About twice medium's errors on phone audio (9.0 vs 4.6 WER), but about 3.4× faster (RTF 0.25 vs 0.87), so it keeps up with live speech on a CPU where medium barely does. |
+| Post-call transcripts | **medium** | Half small's errors on phone audio (4.6 vs 9.0 WER; 17.3 vs 25.4 with noise), for about 3.4× the compute, which is still only $2.10 per 1,000 minutes against $6 for a batch API. |
+| Analytics / summaries | **medium** | Reusing the post-call transcripts costs nothing extra, and small gets about one German word in four wrong (26.2 vs 13.5 WER), which is too many for reliable summaries. |
 
 ---
 
@@ -28,8 +28,10 @@ _Owner-written. The evidence below is copied from [`results/report.md`](results/
 - **Caveat:** we measured whole-clip processing, not streaming delay (see README §5). On this CPU, `medium` is barely real time.
 - **Questions to decide:** What caption delay is acceptable? Is a GPU available in production?
 
-**Recommended model:** _____
-**Trade-off (one sentence):** _____
+**Recommended model:** `small`
+**Trade-off (one sentence):** `small` makes about twice as many errors as `medium` on phone audio (9.0 vs 4.6 WER), but it runs about 3.4× faster (RTF 0.25 vs 0.87), so it keeps up with live speech on a CPU where `medium` barely does.
+
+**Why not the others:** `base` gets 43 words in 100 wrong with phone + noise, too many for readable captions. `medium` is worth retesting if production has a GPU, but this benchmark gives no evidence about GPU speed.
 
 ### 2. Post-call transcripts
 **What matters most:** accuracy on phone audio. Speed only needs to keep up with call volume, and cost per 1,000 minutes matters at scale.
@@ -45,8 +47,10 @@ _Owner-written. The evidence below is copied from [`results/report.md`](results/
 - Self-hosted cost is a floor (a fully busy server, no engineering or redundancy).
 - **Questions to decide:** How many errors per 100 words can downstream readers or QA tolerate? What is the monthly call volume?
 
-**Recommended model:** _____
-**Trade-off (one sentence):** _____
+**Recommended model:** `medium`
+**Trade-off (one sentence):** `medium` makes half as many errors as `small` on phone audio (4.6 vs 9.0 WER; 17.3 vs 25.4 with noise) for about 3.4× the compute, which is still only $2.10 per 1,000 minutes against $6 for a batch API.
+
+**Why not the others:** `small` is the fallback if call volume makes compute the main cost and about 9 errors in 100 words is acceptable to QA. Before switching from self-hosting to the hosted API, measure the API's accuracy, which this benchmark did not do.
 
 ### 3. Analytics / summaries
 **What matters most:** getting the gist and key terms right across many calls and languages, at low cost. Some word errors are tolerable if meaning survives.
@@ -62,8 +66,10 @@ _Owner-written. The evidence below is copied from [`results/report.md`](results/
 - German degrades clearly more than English under noise (H3). Spanish does not.
 - **Questions to decide:** Which languages matter? Do errors in names and numbers break your summaries?
 
-**Recommended model:** _____
-**Trade-off (one sentence):** _____
+**Recommended model:** `medium` (reuse the post-call transcripts)
+**Trade-off (one sentence):** Reusing the post-call transcripts costs nothing extra, and `small` gets about one German word in four wrong (26.2 vs 13.5 WER), which is too many for reliable summaries.
+
+**Why not the others:** if analytics must transcribe separately and covers only English and Spanish, `small` is a reasonable cheaper choice (Spanish 6.9 vs 4.4 WER). Names and numbers were not scored separately, so check them on real calls.
 
 ---
 
