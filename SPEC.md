@@ -100,6 +100,10 @@ Stop after each step and show what changed so the product owner can review.
 - 2026-11-16: Language is passed to the model, so that WER isn't polluted by language-detection errors.
 - 2026-11-16: Telephony = band-limiting only (no codec).
 - 2026-11-16: Telephony + noise: the noise is added in the caller's room *before* the phone line (more production-like than the original "telephony, then noise"). The line removes much of pink noise's low rumble, which left the far-end SNR at 12–15 dB instead of 10. The room noise is therefore tuned so the SNR after the line is exactly 10 dB.
+- 2026-11-16: Transcription settings, fixed for every model and recorded on every CSV row: beam size 5 (Whisper's standard), 4 CPU threads (the M4's performance cores), int8, no silence trimming (VAD off), each clip transcribed on its own. One untimed warm-up clip per model before timing starts.
+- 2026-11-16: Normalisation: Whisper's English normaliser for English, and Whisper's basic normaliser (lower case, no punctuation, accents kept, numbers not converted) for Spanish and German. Both come from the `whisper-normalizer` package. Raw and normalised text are both saved, so scores can be recomputed with other rules (hypothesis 4).
+- 2026-11-16: Overall WER for a group of clips = total word errors ÷ total reference words (not an average of per-clip WERs).
+- 2026-11-16: `make smoke` writes to `results/smoke.csv` (git-ignored) so smoke output never mixes with real results.
 - 2026-11-16: Added `asr-bench listen`, which saves one clip in every condition as .wav (in git-ignored `data/examples/`) so a person can hear the conditions.
 - 2026-11-16: The full benchmark must finish in about 1 hour, so the default sample is small. The report states the sample size and confidence intervals.
 
@@ -110,3 +114,5 @@ Stop after each step and show what changed so the product owner can review.
 - Real recorded noise (e.g. babble, call-centre ambience) instead of synthetic noise.
 - Streaming simulation to measure true live-caption delay.
 - Larger samples, for tighter confidence intervals.
+- A fast mode (beam size 1, greedy) closer to how live captions are run.
+- Number normalisation for Spanish and German ("2017" vs a spelled-out year currently counts as an error).

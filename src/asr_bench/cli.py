@@ -3,18 +3,22 @@
     uv run asr-bench download         fetch the datasets into data/
     uv run asr-bench sample [--n 5]   show the seeded sample for each dataset
     uv run asr-bench listen           save one clip in every condition, to hear
-    uv run asr-bench run [--smoke]    run the benchmark (stub until step 4)
+    uv run asr-bench run --smoke      5 sentences, tiny model -> results/smoke.csv
+    uv run asr-bench run              full benchmark (stub until step 5)
     uv run asr-bench report           build the report (stub until step 6)
 
 Uses argparse from the standard library, so no extra dependency is needed.
 """
 
 import argparse
+import time
 from pathlib import Path
 
 from asr_bench.conditions import load_audio, write_examples
 from asr_bench.config import DEFAULT_CONFIG_PATH, load_config
 from asr_bench.data import download_dataset, load_sample
+from asr_bench.run import run_benchmark
+from asr_bench.transcribe import make_whisper_transcriber
 
 
 def cmd_download(config: dict) -> int:
@@ -52,10 +56,20 @@ def cmd_listen(config: dict, dataset_name: str, out_dir: Path) -> int:
     return 0
 
 
-def cmd_run(smoke: bool) -> int:
-    """Run the benchmark. With --smoke, run a tiny 5-utterance version."""
-    mode = "smoke (5 utterances)" if smoke else "full"
-    print(f"asr-bench run [{mode}]: not implemented yet (build steps 4-5).")
+def cmd_run(config: dict, smoke: bool) -> int:
+    """Run the benchmark. With --smoke: 5 sentences, smoke models only."""
+    if not smoke:
+        print("asr-bench run (full): not implemented yet (build step 5). Use --smoke.")
+        return 0
+    models_dir = Path(config["models_dir"])
+
+    def factory(model_name: str):
+        return make_whisper_transcriber(model_name, config["runtime"], models_dir)
+
+    out_csv = Path("results/smoke.csv")
+    start = time.perf_counter()
+    rows = run_benchmark(config, config["smoke_models"], config["smoke_sample_size"], out_csv, factory)
+    print(f"wrote {rows} rows to {out_csv} in {time.perf_counter() - start:.0f} s")
     return 0
 
 
@@ -82,12 +96,12 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("report", help="build the report from results.csv")
 
     args = parser.parse_args(argv)
-    if args.command == "run":
-        return cmd_run(args.smoke)
     if args.command == "report":
         return cmd_report()
 
     config = load_config(args.config)
+    if args.command == "run":
+        return cmd_run(config, args.smoke)
     if args.command == "download":
         return cmd_download(config)
     if args.command == "listen":

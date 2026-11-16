@@ -9,9 +9,12 @@ Public data only. `uv run asr-bench download` (or `make data`) fetches audio int
 | FLEURS `en_us` test | English read speech | [Hugging Face `google/fleurs`](https://huggingface.co/datasets/google/fleurs) | CC BY 4.0 (dataset card: `cc-by-4.0`) | 290 MB | 2026-11-16 |
 | FLEURS `es_419` test | Spanish (Latin American) read speech | same | CC BY 4.0 | 582 MB | 2026-11-16 |
 | FLEURS `de_de` test | German read speech | same | CC BY 4.0 | 569 MB | 2026-11-16 |
-| Whisper models (faster-whisper / CTranslate2 conversions) | Models under test | Hugging Face | _to verify (step 4)_ | — | — |
+| Whisper `tiny` (faster-whisper / CTranslate2 conversion) | Model under test | [Hugging Face `Systran/faster-whisper-tiny`](https://huggingface.co/Systran/faster-whisper-tiny) | MIT | 75 MB | 2026-11-16 |
+| Other Whisper sizes (base … large-v3-turbo) | Models under test | Hugging Face `Systran/…` | _to verify (step 5)_ | — | — |
 
-Total download is about 2.1 GB, or roughly 4–5 GB on disk after unpacking.
+Dataset download is about 2.1 GB, or roughly 4–5 GB on disk after unpacking. Model files are cached in `data/models/` (git-ignored).
+
+Software used for scoring: `jiwer` (Apache-2.0) and `whisper-normalizer` (MIT, a copy of OpenAI Whisper's normalisation rules).
 
 ## Attribution (required by CC BY 4.0)
 - LibriSpeech: V. Panayotov, G. Chen, D. Povey, S. Khudanpur, "LibriSpeech: an ASR corpus based on public domain audio books", ICASSP 2015.

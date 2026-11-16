@@ -65,3 +65,25 @@ With a pure 1,000 Hz tone, we *know* the right answer: the phone line should kee
 
 **Interview question**
 "Your benchmark adds noise at 10 dB SNR. Is that the SNR the model actually sees on a phone call?" Suggested answer: not automatically. If the noise is in the caller's room, the phone line filters it along with the voice and changes the ratio. We measured this (12–15 dB instead of 10), calibrated the noise so the far-end SNR is the stated value, and wrote a test to keep it that way.
+
+## Step 4 — Transcribe with one model, compute WER, write CSV (2026-11-16)
+
+**New and changed files**
+- `src/asr_bench/metrics.py` — `normalise` (cleans text with Whisper's rules: English rules for English, basic rules otherwise), `word_errors` (counts substitutions, deletions and insertions with `jiwer`), and `real_time_factor`.
+- `src/asr_bench/transcribe.py` — loads a Whisper model with faster-whisper (CPU, int8, 4 threads, beam 5) and returns a `transcribe(audio, language)` function that also times itself.
+- `src/asr_bench/run.py` — the main loop: model → dataset → sentence → condition → transcribe → score → one CSV row (19 columns, including raw and cleaned text). Each row is saved to disk immediately.
+- `src/asr_bench/cli.py` — `asr-bench run --smoke` now really runs: `tiny`, 5 sentences × 5 datasets × 6 conditions = 150 transcripts → `results/smoke.csv`.
+- `config.yaml` — new `models_dir`, `cpu_threads`, `beam_size`, `smoke_models`.
+- `tests/test_metrics.py` (15 tests), `tests/test_run.py` (2 tests with a fake model), `tests/fakes.py` (shared fake datasets).
+- New dependencies: `faster-whisper` (MIT), `jiwer` (Apache-2.0), `whisper-normalizer` (MIT).
+
+**First smoke run (tiny model, 5 sentences per cell: far too small to conclude anything)**
+- 150 transcripts in 88 s (including the 75 MB model download). The spec target is under 5 minutes.
+- `tiny` processed about 1,600 s of audio in about 80 s (average RTF 0.05).
+- The pattern looks plausible: clean LibriSpeech is easiest. German and phone + noise are hardest. Some noisy clips have WER above 100% because the model repeated itself.
+
+**Concept: "lazy" work and where to put the stopwatch**
+faster-whisper doesn't transcribe when you call it. It hands back a "to-do list" (a generator), and the real work happens as you read the results. If the stopwatch stopped right after the call, every model would look almost instantly fast. So we stop the clock only after the full text has been read. That's a classic benchmarking trap.
+
+**Interview question**
+"Why do you store both the raw and the normalised transcript instead of just the WER?" Suggested answer: the WER depends on the cleaning rules. Keeping the raw text means we can re-score with different rules, or audit a surprising number, without re-running hours of transcription. That's how we can test whether normalisation alone flips a model ranking.

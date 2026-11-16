@@ -65,3 +65,36 @@ For each sentence, every model hears **identical** noise, down to the last crack
 ## 11. Verifying with tests
 We don't just trust the code. Automated **tests** check, for example, that "10 dB" really measures 10 dB (within 0.5 dB) and that the phone line really removes very low and very high pitches.
 - **Analogy:** calibrating a weighing scale with a known 1 kg weight before weighing anything else.
+
+---
+
+## 12. WER (word error rate)
+WER is how many word fixes a proof-reader would need to turn the model's text into the correct text, divided by the number of words actually spoken. There are three kinds of fix:
+- **Substitution:** wrong word ("formerly" instead of "formally").
+- **Deletion:** a word the model missed.
+- **Insertion:** an extra word the model invented.
+
+**10% WER ≈ 1 wrong word in 10.** Lower is better. WER can go **above 100%** if the model invents lots of words. For example, under heavy noise a model may repeat itself ("6th, 6th, 6th, 6th…").
+- **Analogy:** marking a dictation test, where each fix costs one mark.
+
+## 13. Normalisation: what counts as "the same word"
+Before marking, both texts are cleaned the same way: lower case, punctuation removed. For English, "twenty five" = "25" and "Dr." = "doctor".
+- **Analogy:** a teacher who doesn't take marks off for a missing full stop or for writing "25" instead of "twenty-five", only for genuinely wrong words.
+- A stricter or looser teacher gives different scores. That's **hypothesis 4**: the cleaning rules alone might change which model "wins".
+- Known gap: for Spanish and German we don't convert numbers, so "2017" vs a spelled-out year counts as an error. Joined vs split words ("checkpoints" vs "check points") also count as errors in every language.
+
+## 14. Overall WER: total mistakes ÷ total words
+To score a group of sentences, we add up all mistakes and divide by all words. We do **not** average each sentence's percentage.
+- **Analogy:** a student's overall exam mark is total marks earned ÷ total marks available. A 3-question quiz shouldn't count as much as a 30-question paper.
+
+## 15. Latency, warm-up, and p50 / p95
+- **Latency:** stopwatch time from handing over a clip to getting the full text back.
+- **Warm-up:** the first clip is always slower while the model sets up memory. We run one untimed clip first. **Analogy:** a car on a cold morning.
+- **p50 (median):** half the clips were faster than this. It's the "typical" experience.
+- **p95:** 95% of clips were faster than this. It's the "bad day" experience, and often matters more to users than the average. **Analogy:** a commute that usually takes 30 minutes (p50) but sometimes 55 (p95). You plan around the 55.
+
+## 16. RTF (real-time factor)
+RTF = processing time ÷ audio length.
+- **RTF 0.1** means a 10-second clip takes 1 second.
+- **Below 1** means the model can keep up with someone talking live. **Above 1** means it falls behind.
+- **Analogy:** a typist taking dictation. RTF 0.5 means they type twice as fast as you speak.
