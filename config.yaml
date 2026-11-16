@@ -1,0 +1,39 @@
+# asr-bench configuration. Everything a run depends on lives here.
+# Not read by code yet: loading this file is added in build step 2.
+
+seed: 42
+
+# Utterances per (dataset x condition). Kept small so the full run takes
+# about 1 hour on an Apple M4; the final number is set after timing in step 4.
+sample_size: 20
+smoke_sample_size: 5
+
+# Whisper sizes run with faster-whisper on CPU, int8.
+runtime:
+  engine: faster-whisper
+  device: cpu
+  compute_type: int8
+models: [tiny, base, small, medium, large-v3-turbo]
+
+# Each dataset is read speech in one language. The language is passed to
+# the model (no automatic detection).
+datasets:
+  - {name: librispeech_test_clean, source: librispeech, split: test-clean, language: en}
+  - {name: librispeech_test_other, source: librispeech, split: test-other, language: en}
+  - {name: fleurs_en, source: fleurs, split: test, language: en}
+  - {name: fleurs_es, source: fleurs, split: test, language: es}
+  - {name: fleurs_de, source: fleurs, split: test, language: de}
+
+# Same utterances under every condition. Noise is synthetic pink noise.
+conditions:
+  - {name: clean}
+  - {name: telephony}
+  - {name: noisy_20db, snr_db: 20}
+  - {name: noisy_10db, snr_db: 10}
+  - {name: noisy_5db, snr_db: 5}
+  - {name: telephony_noisy_10db, telephony: true, snr_db: 10}
+
+# Cost assumptions: YOU fill these in. Left empty, the cost columns stay blank.
+cost:
+  self_hosted_usd_per_hour: null   # hourly price of the machine running the model
+  hosted_api_usd_per_minute: null  # price per audio minute of a hosted speech API

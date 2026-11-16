@@ -1,0 +1,19 @@
+# Python environment and caches
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Data, audio and model weights: never committed
+data/
+*.wav
+*.flac
+*.mp3
+*.tar.gz
+models/
+
+# Secrets
+.env
+
+# macOS
+.DS_Store
