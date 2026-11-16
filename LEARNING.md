@@ -189,3 +189,11 @@ Anyone with this repo can get the *same* report, and we checked that. Three thin
 **Concept: choose by what fails first.** Each use case has a hard limit, and the right model is the most accurate one that stays within it. For live captions the limit is keeping up with speech, which rules out `medium` on a CPU. For post-call the limit is cost, and `medium`'s $2.10 per 1,000 minutes is far below it, so accuracy decides. For analytics the decider is the weakest language you support: German.
 
 **Interview question:** "Why recommend different models for live and post-call, and not one model for simplicity?" (They fail on different limits. Live captions are limited by latency, post-call by accuracy. One model would be too slow for one use case or too inaccurate for the other. The cost of running two is small, since both are the same model family and the same code.)
+
+## Step 9: Voice AI agents use case (2026-11-16)
+
+**What changed:** `RECOMMENDATIONS.md` gains a fourth use case, voice AI agents. `SPEC.md` lists it, logs the decision, and adds GPU and streaming timing as a future enhancement.
+
+**Concept: when no option passes, say so, and name the lever.** For agents, every model tested on a CPU fails one requirement: it is either too slow or too inaccurate. The honest recommendation is not "the least bad model". It is "the accurate model, plus the thing money can buy (a GPU), validated by a specific next test". Because cost is negotiable, the budget question becomes a hardware question.
+
+**Interview question:** "Your benchmark says no model works for voice agents. Isn't that a failed benchmark?" (No. It found the constraint early and cheaply: on a CPU, you can't have both speed and accuracy. It also names the next test, GPU plus streaming on short turns, and gives a fallback, `small` with read-back confirmation of critical details.)

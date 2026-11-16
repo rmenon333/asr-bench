@@ -10,7 +10,7 @@ Contact-center speech AI (live captions, call transcripts, summaries, QA) is onl
 It is a decision aid, not a model-training project.
 
 ## 2. Users and decisions it supports
-- A product manager choosing a model for (a) live captions, (b) post-call transcripts, (c) analytics / summaries.
+- A product manager choosing a model for (a) live captions, (b) post-call transcripts, (c) analytics / summaries, (d) voice AI agents (added 2026-11-16).
 - An engineer who wants a reproducible harness to re-run when a new model ships.
 
 Output the user should walk away with: a one-page recommendation table ("for use case X, ship model Y, because Z") backed by charts.
@@ -62,7 +62,7 @@ Noise mixing must be verified by a test that measures the actual SNR within 0.5 
 1. `make bench` (or `uv run asr-bench run`) runs everything from a clean checkout; `make report` builds the report.
 2. `results/results.csv`: one row per (model, language, condition, utterance) with reference, hypothesis, WER, latency.
 3. `results/report.md` plus PNG charts: WER by model × condition; accuracy vs latency scatter; WER by language.
-4. `RECOMMENDATIONS.md`: a table mapping use cases (live captions, post-call transcript, analytics) to a recommended model with the trade-off in one sentence each, written by the product owner, using the numbers.
+4. `RECOMMENDATIONS.md`: a table mapping use cases (live captions, post-call transcript, analytics, voice AI agents) to a recommended model with the trade-off in one sentence each, written by the product owner, using the numbers.
 5. `README.md` structured as a mini-PRD: problem, method, results, limitations, "what I would do next in production".
 6. `LEARNING.md`: running notes on what the code does, written for a non-Python reader.
 
@@ -112,6 +112,7 @@ Stop after each step and show what changed so the product owner can review.
 - 2026-11-16: Hypothesis rules. H1: the gap (smaller − larger WER) grows versus clean audio, tested for tiny vs medium and small vs medium. H2: "most of the accuracy" means ≥ 80% of the tiny → medium improvement, and "a fraction of the latency" means ≤ 50% of medium's p50; both thresholds are product judgements set in `report.py`. H3: FLEURS only (parallel sentences), extra degradation versus English in absolute WER points. H4: re-score with `basic_all` and `lowercase` rules; a ranking change means two models swap strict order, and ties don't count.
 - 2026-11-16: The language chart and H3 use FLEURS only, because its sentences are translations of each other, which makes the comparison fair.
 - 2026-11-16: Added `asr-bench listen`, which saves one clip in every condition as .wav (in git-ignored `data/examples/`) so a person can hear the conditions.
+- 2026-11-16: Voice AI agents added as a fourth use case in RECOMMENDATIONS.md (owner request): accuracy and latency both matter, and cost is negotiable. Its latency evidence uses clips under 6 s from `results/results.csv`, because agent turns are short. These numbers are not in the generated report.
 - 2026-11-16: The full benchmark must finish in about 1 hour, so the default sample is small. The report states the sample size and confidence intervals.
 
 ## 13. Future enhancement candidates (not in scope now)
@@ -122,5 +123,6 @@ Stop after each step and show what changed so the product owner can review.
 - Streaming simulation to measure true live-caption delay.
 - Larger samples, for tighter confidence intervals.
 - `large-v3-turbo` (and other newer large models), to check whether a distilled large model beats `medium` on accuracy per second.
+- GPU and streaming timings on short turns, to test whether `medium` meets a voice agent's response-time budget.
 - A fast mode (beam size 1, greedy) closer to how live captions are run.
 - Number normalisation for Spanish and German ("2017" vs a spelled-out year currently counts as an error).
