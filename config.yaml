@@ -20,7 +20,7 @@ runtime:
   compute_type: int8
   cpu_threads: 4
   beam_size: 5
-models: [tiny, base, small, medium, large-v3-turbo]
+models: [tiny, base, small, medium]  # large-v3-turbo deferred (SPEC section 13)
 smoke_models: [tiny]
 
 # Each dataset is read speech in one language. The language is passed to

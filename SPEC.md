@@ -40,7 +40,7 @@ Noise mixing must be verified by a test that measures the actual SNR within 0.5 
 ## 5. Models and runtime
 - Runtime: `faster-whisper` on CPU with int8 (the baseline; must work on an Apple M-series Mac).
 - Optional, only if time allows: `mlx-whisper` as a second runtime to compare speed on Apple Silicon.
-- Models: `tiny`, `base`, `small`, `medium`, and `large-v3-turbo` if it runs in reasonable time. Model list lives in `config.yaml`.
+- Models: `tiny`, `base`, `small`, `medium`. (`large-v3-turbo` deferred; see 12.) Model list lives in `config.yaml`.
 - Default sample: small enough that the full run (all models × sets × conditions) finishes in about 1 hour on an Apple M4. The exact number per (set × condition) is set after measuring speed in step 4. Fixed random seed. Configurable.
 - Language is given to the model (no automatic language detection).
 - Runs must be resumable: a crash must not lose finished work.
@@ -104,6 +104,7 @@ Stop after each step and show what changed so the product owner can review.
 - 2026-11-16: Normalisation: Whisper's English normaliser for English, and Whisper's basic normaliser (lower case, no punctuation, accents kept, numbers not converted) for Spanish and German. Both come from the `whisper-normalizer` package. Raw and normalised text are both saved, so scores can be recomputed with other rules (hypothesis 4).
 - 2026-11-16: Overall WER for a group of clips = total word errors ÷ total reference words (not an average of per-clip WERs).
 - 2026-11-16: `make smoke` writes to `results/smoke.csv` (git-ignored) so smoke output never mixes with real results.
+- 2026-11-16: `large-v3-turbo` removed from scope for this exercise. The largest model tested is `medium`.
 - 2026-11-16: Added `asr-bench listen`, which saves one clip in every condition as .wav (in git-ignored `data/examples/`) so a person can hear the conditions.
 - 2026-11-16: The full benchmark must finish in about 1 hour, so the default sample is small. The report states the sample size and confidence intervals.
 
@@ -114,5 +115,6 @@ Stop after each step and show what changed so the product owner can review.
 - Real recorded noise (e.g. babble, call-centre ambience) instead of synthetic noise.
 - Streaming simulation to measure true live-caption delay.
 - Larger samples, for tighter confidence intervals.
+- `large-v3-turbo` (and other newer large models), to check whether a distilled large model beats `medium` on accuracy per second.
 - A fast mode (beam size 1, greedy) closer to how live captions are run.
 - Number normalisation for Spanish and German ("2017" vs a spelled-out year currently counts as an error).
