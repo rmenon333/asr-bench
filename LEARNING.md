@@ -87,3 +87,28 @@ faster-whisper doesn't transcribe when you call it. It hands back a "to-do list"
 
 **Interview question**
 "Why do you store both the raw and the normalised transcript instead of just the WER?" Suggested answer: the WER depends on the cleaning rules. Keeping the raw text means we can re-score with different rules, or audit a surprising number, without re-running hours of transcription. That's how we can test whether normalisation alone flips a model ranking.
+
+## Step 5 — Resume, all models, full run (2026-11-16)
+
+**New and changed files**
+- `src/asr_bench/run.py`:
+  - Now **resumable**. `read_finished` reads the existing results, `drop_partial_last_line` removes a row cut off by a crash, and only missing (model, dataset, condition, sentence) combinations are run. New rows are appended.
+  - Refuses to mix rows made with different settings.
+  - Skips loading a model that has nothing left to do.
+  - Prints progress every 50 rows.
+  - `score_row` now builds each row, which keeps the loop short.
+- `src/asr_bench/cli.py` — `run` gained options: `--n` (sentences), `--models`, `--out`, `--fresh` (start over). `--smoke` always starts fresh.
+- `tests/test_resume.py` — 6 tests with a fake model that "crashes" on purpose: restart after a crash, a finished run does nothing, a half-written line is redone, changed settings are refused, a bigger sample only adds new sentences, and `--fresh` starts over.
+- `config.yaml` — `sample_size: 10`, chosen from the speed probe. `large-v3-turbo` was removed earlier by your decision.
+- `results/results.csv` — the full run: 4 models × 5 datasets × 6 conditions × 10 sentences = 1,200 rows.
+
+**Concept: "idempotent" (safe to re-run)**
+A command is *idempotent* if running it twice gives the same result as running it once. `asr-bench run` is now idempotent: a second run on a finished file does nothing, and on a half-finished file it only completes the missing part. This matters for long jobs on laptops that sleep, crash or get closed.
+
+**Interview question**
+"Your full benchmark takes an hour. What happens if it dies at minute 50?" Suggested answer: every row is saved the moment it finishes, so we lose at most the one clip in progress. On restart, the run reads what's done, drops any half-written row, and continues. It also refuses to mix in rows produced with different settings, so a resumed run can't silently become an inconsistent one.
+
+**Full run (2026-11-16): what actually happened**
+- 1,200 rows in **59.7 min**, against an estimate of ~52 min from the probe. `medium` ran slower than in the probe (RTF 0.87 vs 0.78), and the estimate left out model loading and warm-up. The budget still held, but with no spare.
+- Every row is unique and every model has 300 rows.
+- The analysis (margins of error, charts, the hypotheses) is step 6. Until then these are raw numbers only.

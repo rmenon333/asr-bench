@@ -4,7 +4,8 @@
     uv run asr-bench sample [--n 5]   show the seeded sample for each dataset
     uv run asr-bench listen           save one clip in every condition, to hear
     uv run asr-bench run --smoke      5 sentences, tiny model -> results/smoke.csv
-    uv run asr-bench run              full benchmark (stub until step 5)
+    uv run asr-bench run              full benchmark -> results/results.csv (resumable)
+      options: --n 10  --models tiny base  --out file.csv  --fresh
     uv run asr-bench report           build the report (stub until step 6)
 
 Uses argparse from the standard library, so no extra dependency is needed.
@@ -56,20 +57,27 @@ def cmd_listen(config: dict, dataset_name: str, out_dir: Path) -> int:
     return 0
 
 
-def cmd_run(config: dict, smoke: bool) -> int:
-    """Run the benchmark. With --smoke: 5 sentences, smoke models only."""
-    if not smoke:
-        print("asr-bench run (full): not implemented yet (build step 5). Use --smoke.")
-        return 0
+def cmd_run(config: dict, smoke: bool, n: int | None, models: list[str] | None,
+            out: Path | None, fresh: bool) -> int:  # fmt: skip
+    """Run the benchmark (resumable). --smoke: 5 sentences, smoke models, fresh file."""
+    if smoke:
+        models = models or config["smoke_models"]
+        n = n or config["smoke_sample_size"]
+        out = out or Path("results/smoke.csv")
+        fresh = True
+    else:
+        models = models or config["models"]
+        n = n or config["sample_size"]
+        out = out or Path("results/results.csv")
     models_dir = Path(config["models_dir"])
 
     def factory(model_name: str):
         return make_whisper_transcriber(model_name, config["runtime"], models_dir)
 
-    out_csv = Path("results/smoke.csv")
+    print(f"models {models}, {n} sentences per dataset x condition -> {out}")
     start = time.perf_counter()
-    rows = run_benchmark(config, config["smoke_models"], config["smoke_sample_size"], out_csv, factory)
-    print(f"wrote {rows} rows to {out_csv} in {time.perf_counter() - start:.0f} s")
+    rows = run_benchmark(config, models, n, out, factory, fresh=fresh)
+    print(f"wrote {rows} new rows to {out} in {(time.perf_counter() - start) / 60:.1f} min")
     return 0
 
 
@@ -93,6 +101,10 @@ def main(argv: list[str] | None = None) -> int:
     listen_parser.add_argument("--out", type=Path, default=Path("data/examples"))
     run_parser = sub.add_parser("run", help="run the benchmark")
     run_parser.add_argument("--smoke", action="store_true", help="tiny 5-utterance run")
+    run_parser.add_argument("--n", type=int, default=None, help="sentences per dataset x condition")
+    run_parser.add_argument("--models", nargs="+", default=None, help="override the model list")
+    run_parser.add_argument("--out", type=Path, default=None, help="results file")
+    run_parser.add_argument("--fresh", action="store_true", help="ignore and replace existing rows")
     sub.add_parser("report", help="build the report from results.csv")
 
     args = parser.parse_args(argv)
@@ -101,7 +113,7 @@ def main(argv: list[str] | None = None) -> int:
 
     config = load_config(args.config)
     if args.command == "run":
-        return cmd_run(config, args.smoke)
+        return cmd_run(config, args.smoke, args.n, args.models, args.out, args.fresh)
     if args.command == "download":
         return cmd_download(config)
     if args.command == "listen":

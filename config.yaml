@@ -6,9 +6,10 @@ seed: 42
 data_dir: data
 models_dir: data/models
 
-# Utterances per (dataset x condition). Kept small so the full run takes
-# about 1 hour on an Apple M4; the final number is set after timing in step 4.
-sample_size: 20
+# Utterances per (dataset x condition). Chosen from a measured speed probe so
+# the full run (4 models) takes ~52 min on an Apple M4 (CPU, 4 threads).
+# Can be raised later: finished rows are kept and only new sentences run.
+sample_size: 10
 smoke_sample_size: 5
 
 # Whisper sizes run with faster-whisper on CPU, int8.

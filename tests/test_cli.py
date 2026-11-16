@@ -1,4 +1,6 @@
-"""The CLI skeleton works: commands exist and exit cleanly."""
+"""The CLI works: commands exist and exit cleanly."""
+
+import pytest
 
 from asr_bench.cli import main
 
@@ -7,6 +9,6 @@ def test_report_exits_ok():
     assert main(["report"]) == 0
 
 
-def test_full_run_is_not_yet_available(capsys):
-    assert main(["run"]) == 0
-    assert "step 5" in capsys.readouterr().out
+def test_unknown_command_is_rejected():
+    with pytest.raises(SystemExit):
+        main(["fly"])

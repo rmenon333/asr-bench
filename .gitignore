@@ -12,8 +12,9 @@ data/
 *.tar.gz
 models/
 
-# Smoke-test output (not a real result)
+# Smoke-test and speed-probe output (not real results)
 results/smoke.csv
+results/probe.csv
 
 # Secrets
 .env

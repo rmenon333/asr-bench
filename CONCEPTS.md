@@ -98,3 +98,21 @@ RTF = processing time ÷ audio length.
 - **RTF 0.1** means a 10-second clip takes 1 second.
 - **Below 1** means the model can keep up with someone talking live. **Above 1** means it falls behind.
 - **Analogy:** a typist taking dictation. RTF 0.5 means they type twice as fast as you speak.
+
+---
+
+## 17. Resumable runs
+The benchmark saves each result the moment it's done. If the run crashes or the laptop sleeps, restarting skips everything already finished.
+- **Analogy:** a bookmark. You don't reread the book from page 1 after falling asleep.
+- **Safety rule:** results made with different settings (for example a different beam size) are never mixed in one file. That would be like combining exams marked with two different answer keys.
+- **Growing the sample:** because the 10-sentence sample is the first 10 of any bigger sample, we can later go to 20 and only the 10 *new* sentences are run.
+
+## 18. A speed probe before the real run
+Before the full run, we timed every model on a small slice (60 clips each) and used that to predict the full run's length.
+- **Analogy:** timing one lap before committing to a marathon pace.
+- What it showed (Apple M4, CPU only): `tiny` processes audio ~20× faster than real time, `base` ~13×, `small` ~4×, and `medium` only ~1.3× (RTF 0.78). On this machine, `medium` barely keeps up with live speech, which already matters for live captions.
+
+## 19. Why a small sample means uncertain answers
+With 10 sentences per cell, one unlucky sentence can move the WER by several points.
+- **Analogy:** judging a restaurant from 10 meals vs 1,000. Ten meals tells you if it's great or terrible, but not whether it's 7/10 or 8/10.
+- So the report will show a **range** (margin of error) for each number, not just one value. Where two models' ranges overlap a lot, the honest conclusion is "we can't tell them apart with this data".

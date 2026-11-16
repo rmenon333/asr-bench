@@ -105,6 +105,8 @@ Stop after each step and show what changed so the product owner can review.
 - 2026-11-16: Overall WER for a group of clips = total word errors ÷ total reference words (not an average of per-clip WERs).
 - 2026-11-16: `make smoke` writes to `results/smoke.csv` (git-ignored) so smoke output never mixes with real results.
 - 2026-11-16: `large-v3-turbo` removed from scope for this exercise. The largest model tested is `medium`.
+- 2026-11-16: Sample size = 10 sentences per (dataset × condition), so 300 clips per model and 1,200 in total. Chosen from a measured speed probe (RTF on the M4, CPU, 4 threads: tiny 0.05, base 0.08, small 0.23, medium 0.78) to fit the ~1-hour budget (estimate ~52 min). Margins of error at this size are wide, and the report must say so. The sample can be grown later without redoing finished rows.
+- 2026-11-16: Resume rules: rows are keyed by (model, dataset, condition, sentence). A half-written last row is redone. A run refuses to add to a file made with different settings (precision, threads, beam size, seed). `--fresh` starts over.
 - 2026-11-16: Added `asr-bench listen`, which saves one clip in every condition as .wav (in git-ignored `data/examples/`) so a person can hear the conditions.
 - 2026-11-16: The full benchmark must finish in about 1 hour, so the default sample is small. The report states the sample size and confidence intervals.
 
