@@ -38,3 +38,30 @@ A computer's "random" numbers come from a formula started by a number called the
 
 **Interview question**
 "Why test on a fixed random sample instead of the first 20 files?" Suggested answer: the first files in a dataset often come from one speaker or one chapter, which would bias results. A seeded sample spreads across speakers and is still reproducible, so different models and conditions are compared on the same sentences.
+
+## Step 3 — Audio conditions (2026-11-16)
+
+**New and changed files**
+- `src/asr_bench/conditions.py` — turns a clean clip into each test condition:
+  - `load_audio` — reads any audio file as one channel at 16 kHz.
+  - `telephony` — drops to 8 kHz, keeps only 300–3400 Hz, then returns to 16 kHz.
+  - `pink_noise` — makes pink noise (white noise with the high pitches turned down).
+  - `scale_noise_to_snr` / `add_noise_at_snr` — set the noise loudness for an exact SNR.
+  - `measure_snr_db` — checks the SNR actually achieved.
+  - `apply_condition` — reads a condition from `config.yaml` and applies it. It returns the audio plus the measured SNR.
+  - `noise_seed` — makes the noise for each sentence identical across models.
+  - `write_examples` — saves .wav files for listening.
+- `src/asr_bench/cli.py` — new `asr-bench listen [--dataset fleurs_es]` command. It writes one clip in all 6 conditions to `data/examples/`.
+- `tests/test_conditions.py` — 14 tests using synthetic tones: SNR accuracy, pink-noise shape, phone band, the room-noise-through-phone order, same-noise-per-sentence, and loading.
+- `config.yaml` — the `telephony` condition now has `telephony: true`.
+- `CONCEPTS.md` — new plain-English revision sheet with analogies.
+- New dependency: `scipy` (standard library of scientific maths: resampling and filters).
+
+**What we found while building**
+Pink noise has a lot of deep rumble, and the phone line removes it. With "room noise at 10 dB", the caller-to-agent SNR came out at 12–15 dB instead of 10, so it was easier than its label. We now tune the room noise so the far end is exactly 10 dB. On the 100 sampled real clips, every noisy condition measures exactly on target.
+
+**Concept: why test with synthetic tones instead of real speech?**
+With a pure 1,000 Hz tone, we *know* the right answer: the phone line should keep it, and should remove a 100 Hz or 6,000 Hz tone. Real speech mixes everything together, so a test on it couldn't say exactly what "correct" looks like. Known inputs give unambiguous checks.
+
+**Interview question**
+"Your benchmark adds noise at 10 dB SNR. Is that the SNR the model actually sees on a phone call?" Suggested answer: not automatically. If the noise is in the caller's room, the phone line filters it along with the voice and changes the ratio. We measured this (12–15 dB instead of 10), calibrated the noise so the far-end SNR is the stated value, and wrote a test to keep it that way.

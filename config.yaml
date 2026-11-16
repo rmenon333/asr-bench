@@ -27,9 +27,11 @@ datasets:
   - {name: fleurs_de, source: fleurs, split: test, language: de}
 
 # Same utterances under every condition. Noise is synthetic pink noise.
+# With both noise and telephony, noise is added first (it is in the caller's
+# room), then the mix goes through the phone line.
 conditions:
   - {name: clean}
-  - {name: telephony}
+  - {name: telephony, telephony: true}
   - {name: noisy_20db, snr_db: 20}
   - {name: noisy_10db, snr_db: 10}
   - {name: noisy_5db, snr_db: 5}

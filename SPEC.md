@@ -33,7 +33,7 @@ Claude Code must verify each dataset's current availability and licence before u
 | `clean` | original audio, resampled to 16 kHz |
 | `telephony` | downsample to 8 kHz, band-limit to ~300–3400 Hz, then back to 16 kHz for the model |
 | `noisy_20db`, `noisy_10db`, `noisy_5db` | add synthetic pink noise at the stated SNR (pink is closer to real ambient noise than white; see 12) |
-| `telephony_noisy_10db` | telephony processing, then 10 dB noise |
+| `telephony_noisy_10db` | pink noise added in the caller's room, then voice and noise both go through the telephony line; noise loudness is set so the SNR after the line is 10 dB |
 
 Noise mixing must be verified by a test that measures the actual SNR within 0.5 dB.
 
@@ -99,6 +99,8 @@ Stop after each step and show what changed so the product owner can review.
 - 2026-11-16: Noise is pink only (more production-like than white), which also keeps the number of conditions down.
 - 2026-11-16: Language is passed to the model, so that WER isn't polluted by language-detection errors.
 - 2026-11-16: Telephony = band-limiting only (no codec).
+- 2026-11-16: Telephony + noise: the noise is added in the caller's room *before* the phone line (more production-like than the original "telephony, then noise"). The line removes much of pink noise's low rumble, which left the far-end SNR at 12–15 dB instead of 10. The room noise is therefore tuned so the SNR after the line is exactly 10 dB.
+- 2026-11-16: Added `asr-bench listen`, which saves one clip in every condition as .wav (in git-ignored `data/examples/`) so a person can hear the conditions.
 - 2026-11-16: The full benchmark must finish in about 1 hour, so the default sample is small. The report states the sample size and confidence intervals.
 
 ## 13. Future enhancement candidates (not in scope now)
