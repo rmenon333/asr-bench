@@ -1,8 +1,9 @@
 # Shortcuts. Each target is one uv command; run `make help` to list them.
-.PHONY: help install test smoke bench report
+.PHONY: help install data test smoke bench report
 
 help:
 	@echo "make install  - create the Python environment (uv sync)"
+	@echo "make data     - download datasets into data/ (~2.1 GB)"
 	@echo "make test     - run unit tests"
 	@echo "make smoke    - 5-utterance end-to-end run (target: under 5 minutes)"
 	@echo "make bench    - full benchmark run"
@@ -22,3 +23,6 @@ bench:
 
 report:
 	uv run asr-bench report
+
+data:
+	uv run asr-bench download

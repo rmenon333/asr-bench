@@ -1,7 +1,9 @@
 # asr-bench configuration. Everything a run depends on lives here.
-# Not read by code yet: loading this file is added in build step 2.
 
 seed: 42
+
+# Where downloaded audio is cached (git-ignored).
+data_dir: data
 
 # Utterances per (dataset x condition). Kept small so the full run takes
 # about 1 hour on an Apple M4; the final number is set after timing in step 4.

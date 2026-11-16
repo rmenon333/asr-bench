@@ -3,7 +3,11 @@ name = "asr-bench"
 version = "0.1.0"
 description = "Speech-to-text quality benchmark for contact-center conditions"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "numpy>=2.5.5",
+    "pyyaml>=6.0.3",
+    "soundfile>=0.14.0",
+]
 
 [project.scripts]
 asr-bench = "asr_bench.cli:main"
