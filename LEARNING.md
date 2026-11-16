@@ -112,3 +112,28 @@ A command is *idempotent* if running it twice gives the same result as running i
 - 1,200 rows in **59.7 min**, against an estimate of ~52 min from the probe. `medium` ran slower than in the probe (RTF 0.87 vs 0.78), and the estimate left out model loading and warm-up. The budget still held, but with no spare.
 - Every row is unique and every model has 300 rows.
 - The analysis (margins of error, charts, the hypotheses) is step 6. Until then these are raw numbers only.
+
+## Step 6 — Report and charts (2026-11-16)
+
+**New and changed files**
+- `src/asr_bench/report.py` — reads `results/results.csv` (no models run) and writes `results/report.md` plus three charts in `results/charts/`. Main pieces:
+  - `load_results` — turns the CSV rows into arrays indexed [model, condition, sentence]. It fails clearly if any result is missing.
+  - `estimate` — any statistic plus its 95% bootstrap interval.
+  - `section_*` / `hypothesis_1..4` — each builds one part of the report, with its rule written in.
+  - `rescore` / `ranking_changed` — hypothesis 4: re-mark the saved raw text with other cleaning rules, and count real (non-tie) ranking swaps.
+  - `chart_*` — the three matplotlib charts. Model sizes use one blue hue, light → dark, checked for colour-blind safety.
+- `src/asr_bench/metrics.py` — new `pooled_wer`, `bootstrap_indices`, `confidence_interval`, and the two cost formulas.
+- `config.yaml` — owner-approved AWS prices (with sources) and a `machine` description.
+- `tests/test_metrics.py` (+7 tests), `tests/test_report.py` (4 tests, building a full report from a fake results file).
+- New dependency: `matplotlib` (charts).
+
+**What we caught while checking the output**
+- Prices were displayed rounded ($0.145 showed as $0.14, and $0.006 as $0.01). They're now shown exactly.
+- Hypothesis 4 first counted *ties* as ranking flips, which inflated the result from 3 to 11 cells. Now only real swaps count.
+- The H2 verdict said "Mixed" when every condition was actually inconclusive. It now says "Unclear".
+
+**Concept: why the report is generated, not written by hand**
+Every number in `report.md` comes from code reading the CSV. If we re-run with more sentences, `make report` rebuilds everything consistently. A hand-written report goes stale, and invites "rounding in our favour". Interpretation and recommendations stay human-written (README and RECOMMENDATIONS.md), on top of the generated numbers.
+
+**Interview question**
+"Medium beats small by 3 WER points on clean audio. Is that real?" Suggested answer: it depends on the uncertainty, not the size of the gap. We ran a paired bootstrap on the same 50 sentences, and the difference's 95% interval is 1.1–5.5 points, entirely above zero. So with this data it's a clear difference, but the true gap could be as small as 1 point or as large as 5.5.

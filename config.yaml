@@ -2,6 +2,9 @@
 
 seed: 42
 
+# The machine the timings come from (shown in the report).
+machine: Apple M4 laptop, CPU only (4 performance cores used)
+
 # Where downloaded audio and model files are cached (git-ignored).
 data_dir: data
 models_dir: data/models
@@ -44,7 +47,13 @@ conditions:
   - {name: noisy_5db, snr_db: 5}
   - {name: telephony_noisy_10db, telephony: true, snr_db: 10}
 
-# Cost assumptions: YOU fill these in. Left empty, the cost columns stay blank.
+# Cost assumptions (owner-approved, 2026-11-16). Set a value to null to show "not set".
+# Self-hosted: AWS EC2 c7g.xlarge (4 vCPU, ARM/Graviton), Linux on-demand, US East
+#   (N. Virginia). $0.145/hour per third-party price trackers. Verify in calculator.aws.
+#   Caveat: our speeds were measured on an Apple M4, not on this server.
+# Hosted API: Amazon Transcribe standard, US East, from aws.amazon.com/transcribe/pricing:
+#   batch $0.006/min (post-call), streaming $0.01/min (live captions).
 cost:
-  self_hosted_usd_per_hour: null   # hourly price of the machine running the model
-  hosted_api_usd_per_minute: null  # price per audio minute of a hosted speech API
+  self_hosted_usd_per_hour: 0.145
+  hosted_api_usd_per_minute: 0.006
+  hosted_api_streaming_usd_per_minute: 0.01

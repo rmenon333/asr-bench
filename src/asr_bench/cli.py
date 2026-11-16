@@ -6,7 +6,7 @@
     uv run asr-bench run --smoke      5 sentences, tiny model -> results/smoke.csv
     uv run asr-bench run              full benchmark -> results/results.csv (resumable)
       options: --n 10  --models tiny base  --out file.csv  --fresh
-    uv run asr-bench report           build the report (stub until step 6)
+    uv run asr-bench report           build results/report.md and charts
 
 Uses argparse from the standard library, so no extra dependency is needed.
 """
@@ -18,6 +18,7 @@ from pathlib import Path
 from asr_bench.conditions import load_audio, write_examples
 from asr_bench.config import DEFAULT_CONFIG_PATH, load_config
 from asr_bench.data import download_dataset, load_sample
+from asr_bench.report import build_report
 from asr_bench.run import run_benchmark
 from asr_bench.transcribe import make_whisper_transcriber
 
@@ -81,9 +82,10 @@ def cmd_run(config: dict, smoke: bool, n: int | None, models: list[str] | None,
     return 0
 
 
-def cmd_report() -> int:
+def cmd_report(config: dict) -> int:
     """Build results/report.md and charts from results/results.csv."""
-    print("asr-bench report: not implemented yet (build step 6).")
+    report = build_report(Path("results/results.csv"), config, Path("results"))
+    print(f"wrote {report} and charts in results/charts/")
     return 0
 
 
@@ -108,10 +110,9 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("report", help="build the report from results.csv")
 
     args = parser.parse_args(argv)
-    if args.command == "report":
-        return cmd_report()
-
     config = load_config(args.config)
+    if args.command == "report":
+        return cmd_report(config)
     if args.command == "run":
         return cmd_run(config, args.smoke, args.n, args.models, args.out, args.fresh)
     if args.command == "download":

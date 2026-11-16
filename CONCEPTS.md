@@ -116,3 +116,30 @@ Before the full run, we timed every model on a small slice (60 clips each) and u
 With 10 sentences per cell, one unlucky sentence can move the WER by several points.
 - **Analogy:** judging a restaurant from 10 meals vs 1,000. Ten meals tells you if it's great or terrible, but not whether it's 7/10 or 8/10.
 - So the report will show a **range** (margin of error) for each number, not just one value. Where two models' ranges overlap a lot, the honest conclusion is "we can't tell them apart with this data".
+
+---
+
+## 20. Margin of error with the "bootstrap"
+We have only 50 sentences per model × condition. How much would the WER change on a *different* 50 similar sentences? We can't record new ones, so we **pretend**: draw 50 sentences at random from our 50, *with repeats allowed*, and recompute the WER. We do this 2,000 times. The middle 95% of those results is the **95% interval**, written `[a–b]`.
+- **Analogy:** re-shuffling the same deck of exam questions thousands of times to see how much a student's score wobbles on a different-but-similar exam.
+- A wide interval means "don't trust small differences".
+
+## 21. Fair head-to-head comparisons ("paired")
+To ask "is small really better than base?", we re-draw the **same** sentences for both models each time and look at the *difference*. If the difference's interval is entirely above zero, it's **clear**. If it includes zero, **we can't tell them apart with this data**.
+- **Analogy:** two golfers playing the same holes. A hard course hurts both equally, so only skill differences remain.
+- Because every model heard identical sentences, paired comparisons are much sharper than comparing two separate intervals by eye.
+
+## 22. Rules before results
+Each hypothesis has a written rule (for example "≥ 80% of the improvement counts as *most*"), and the verdict follows the rule. This stops us from deciding what counts as "good enough" *after* seeing the numbers.
+- **Analogy:** agreeing on the offside rule before the match, not after the goal.
+- Verdicts: **Supported**, **Partly supported**, **Not supported**, or **Unclear** (the data can't decide).
+
+## 23. Cost per 1,000 audio minutes
+- **Self-hosted:** RTF × 1,000 minutes = minutes of server time. Divide by 60 for hours, then multiply by the hourly server price. Example: RTF 0.87 → 870 minutes = 14.5 hours × $0.145 ≈ **$2.10**.
+- **Hosted API:** price per minute × 1,000. Example: $0.006 × 1,000 = **$6**.
+- **Caveats:** this assumes a server as fast as the laptop, kept 100% busy, and ignores engineering, monitoring and redundancy. Real self-hosting costs more than this floor.
+- **Analogy:** comparing the fuel cost of driving your own car with a taxi fare. The fuel is cheaper, but you also pay for the car, insurance and your time.
+
+## 24. Ties are not flips
+When re-marking with different cleaning rules (hypothesis 4), two models with the *same* score in a small group have no real order. We only count a "ranking flip" when one model goes from strictly better to strictly worse.
+- **Analogy:** two runners crossing the line together. Whoever is listed first in the results isn't "ahead".
